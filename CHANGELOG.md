@@ -3,6 +3,7 @@
 ### 🚀 Features
 
 - add `@arcasdk/redis-storage` package: `RedisTicketStorage` keeps WSAA tickets in Redis (`redis` v4+ or `ioredis`) so several instances share them — see [Tickets en Redis](https://ralcorta.github.io/arcasdk/packages/redis-storage)
+- add `EncryptedTicketStorage`: wraps any ticket storage and encrypts the WSAA token and sign with AES-256-GCM — see [Cifrar los tickets](https://ralcorta.github.io/arcasdk/credential_management#cifrar-los-tickets)
 - add `wsctService` for class T tourism vouchers (WSCT): authorization, queries and catalogs via `arca.wsctService` — see [Comprobantes T de turismo](https://ralcorta.github.io/arcasdk/services/comprobantes_turismo)
 - add `registerScopeHundredService` for padrón A100 parameter tables (`ws_sr_padron_a100`): `getParameterCollection(collectionName)` returns provinces, address types, legal forms and the rest of the padrón catalogs — see [Padrón alcance 100](https://ralcorta.github.io/arcasdk/services/consulta_padron_alcance_100)
 - add `wscdcService` for voucher verification (WSCDC): `constatarComprobante` checks a CAE, CAEA or CAI voucher against ARCA, plus the modality, voucher type, document type and optional-data catalogs — see [Constatación de comprobantes](https://ralcorta.github.io/arcasdk/services/constatacion_comprobantes)
