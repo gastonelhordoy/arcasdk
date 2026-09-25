@@ -25,5 +25,6 @@ describe("Consumer smoke: paquete instalado como dependencia npm", () => {
     expect(Object.getOwnPropertyDescriptor(Arca.prototype, "wsfecredService")?.get).toBeDefined();
     expect(Object.getOwnPropertyDescriptor(Arca.prototype, "wsctService")?.get).toBeDefined();
     expect(Object.getOwnPropertyDescriptor(Arca.prototype, "registerScopeHundredService")?.get).toBeDefined();
+    expect(Object.getOwnPropertyDescriptor(Arca.prototype, "wscdcService")?.get).toBeDefined();
   });
 });

@@ -11,6 +11,7 @@ export const ArcaServiceNames = {
   WSFEX: "wsfex",
   WSFECRED: "wsfecred",
   WSCT: "wsct",
+  WSCDC: "wscdc",
 } as const;
 
 export type ArcaServiceName =
