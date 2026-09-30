@@ -9,10 +9,12 @@
 - add `wscdcService` for voucher verification (WSCDC): `constatarComprobante` checks a CAE, CAEA or CAI voucher against ARCA, plus the modality, voucher type, document type and optional-data catalogs — see [Constatación de comprobantes](https://ralcorta.github.io/arcasdk/services/constatacion_comprobantes)
 - add `keepAlive` SOAP client option; WSCDC uses `keepAlive: false` because ARCA rejects WSCDC calls sent over a keep-alive connection opened by WSFE on the same host
 - add `PeriodoAsoc` on WSFE vouchers so credit/debit notes can satisfy ARCA error 10197 without a specific `CbtesAsoc`
+- complete `getVoucherInfo`: it now returns everything `FECompConsultar` reports — sales point and voucher type, receiver IVA condition, service period and payment due date, `canMisMonExt`, IVA and tax breakdowns, associated vouchers or period, optionals, buyers, activities, and every observation with its code in `observacionesDetalle` (`observaciones` keeps the first message)
 
 ### 🩹 Fixes
 
 - share a single WSAA login between concurrent calls for the same service, and recover from `coe.alreadyAuthenticated` by re-reading the ticket storage, where another instance may have saved the ticket
+- accept `DocTipo` 0 (CI Policía Federal) in WSFE vouchers: it is a valid ARCA document type, so only a missing or negative value is rejected before the SOAP call
 - stop pre-validating WSFE `ImpTotal` in the SDK (ARCA error 10048), so fiscally valid exempt vouchers such as Recibo A (`ImpOpEx = ImpTotal`) are no longer rejected before the SOAP call
 - expand `isTypeA/B/C/M()` to Recibos, NC and ND of that class, so type-C IVA rules apply to Recibo/NC/ND C and not only Factura C (`CbteTipo` 11)
 - map XSD restricted numeric simpleTypes to `number` in generated SOAP DTOs (WSCT, WSFECRED)
