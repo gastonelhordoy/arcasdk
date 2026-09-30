@@ -1,45 +1,53 @@
 import { ArcaServiceName } from "./service-name.types";
 
-/** Service a SOAP call went to: an ARCA business service, or WSAA while logging in */
+/** Service a call went to: an ARCA business service, or WSAA while logging in */
 export type ArcaEventService = ArcaServiceName | "wsaa";
 
-interface ArcaSoapEventBase {
+interface ArcaEventBase {
   /** Service the call went to */
   service: ArcaEventService;
-  /** SOAP operation, e.g. `FECAESolicitar` or `loginCms` */
+  /** ARCA operation, e.g. `FECAESolicitar` or `loginCms` */
   method: string;
   /** URL the request was sent to */
   endpoint?: string;
-  /** Identifies one call: the request event and its response or error event share it */
-  exchangeId: string;
+  /** Identifies one call: its request event and its response or error event share it */
+  requestId: string;
 }
 
 /** Emitted right before the request goes out */
-export interface ArcaSoapRequestEvent extends ArcaSoapEventBase {
-  type: "soap:request";
-  /** SOAP envelope sent, with the WSAA token and sign redacted */
+export interface ArcaRequestEvent extends ArcaEventBase {
+  type: "request";
+  /** Parameters of the call, as passed to ARCA before converting them to XML */
+  params: unknown;
+  /** XML sent to ARCA */
   xml: string;
 }
 
-/** Emitted when ARCA answered and the SDK parsed the answer */
-export interface ArcaSoapResponseEvent extends ArcaSoapEventBase {
-  type: "soap:response";
-  /** SOAP envelope received, with the WSAA token and sign redacted */
+/** Emitted when ARCA answered and the answer could be read */
+export interface ArcaResponseEvent extends ArcaEventBase {
+  type: "response";
+  /** ARCA's answer converted from XML, before the SDK maps it to its own types */
+  result: unknown;
+  /** XML received from ARCA */
   xml: string;
   durationMs: number;
 }
 
 /** Emitted when the call failed: network error, HTTP error or SOAP fault */
-export interface ArcaSoapErrorEvent extends ArcaSoapEventBase {
-  type: "soap:error";
+export interface ArcaErrorEvent extends ArcaEventBase {
+  type: "error";
   error: unknown;
-  /** Body ARCA answered with, when there was one, with the WSAA token and sign redacted */
+  /** Body ARCA answered with, when there was one */
   xml?: string;
   durationMs: number;
 }
 
-export type ArcaEvent =
-  ArcaSoapRequestEvent | ArcaSoapResponseEvent | ArcaSoapErrorEvent;
+/**
+ * Event for one call to ARCA. `params`, `result` and `xml` are copies with
+ * the WSAA token and sign, and the signed request sent to WSAA, replaced by
+ * `[REDACTED]`.
+ */
+export type ArcaEvent = ArcaRequestEvent | ArcaResponseEvent | ArcaErrorEvent;
 
 /**
  * Receives every SDK event. It is called synchronously; whatever it throws is

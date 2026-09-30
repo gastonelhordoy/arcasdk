@@ -224,9 +224,16 @@ describe("AuthRepository", () => {
       await adapter.login(ArcaServiceNames.WSFE);
 
       expect(events.map((e) => [e.type, e.service, e.method])).toEqual([
-        ["soap:request", "wsaa", "loginCms"],
-        ["soap:response", "wsaa", "loginCms"],
+        ["request", "wsaa", "loginCms"],
+        ["response", "wsaa", "loginCms"],
       ]);
+      expect(events[0]).toMatchObject({
+        params: { in0: "[REDACTED]" },
+        xml: "<loginCms><in0>[REDACTED]</in0></loginCms>",
+      });
+      expect(events[1]).toMatchObject({
+        result: { loginCmsReturn: "<xml>response</xml>" },
+      });
       expect(events[1].xml).toBe(
         "<loginCmsReturn>&lt;token&gt;[REDACTED]&lt;/token&gt;&lt;sign&gt;[REDACTED]&lt;/sign&gt;</loginCmsReturn>",
       );

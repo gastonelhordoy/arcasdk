@@ -102,7 +102,7 @@ export abstract class BaseSoapRepository {
             if (!tracker) {
               return original.call(target, callParams);
             }
-            return tracker.track(serviceName, func, (trackOptions) =>
+            return tracker.track(serviceName, func, callParams, (trackOptions) =>
               original.call(
                 target,
                 callParams,

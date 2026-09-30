@@ -21,7 +21,7 @@ export interface BaseSoapRepositoryConstructorConfig {
   useSoap12?: boolean;
   
   useHttpsAgent?: boolean;
-  /** Receives the SOAP events of every call made through this repository */
+  /** Receives the events of every call made through this repository */
   onEvent?: ArcaEventListener;
 }
 

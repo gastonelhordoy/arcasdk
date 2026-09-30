@@ -69,21 +69,27 @@ describe("BaseSoapRepository events (via RegisterScopeFourRepository)", () => {
 
     await repository.getTaxpayerDetails(REPOSITORY_TEST_IDENTIFIER);
 
-    expect(events.map((e) => e.type)).toEqual([
-      "soap:request",
-      "soap:response",
-    ]);
+    expect(events.map((e) => e.type)).toEqual(["request", "response"]);
     expect(events[1]).toMatchObject({
       service: "ws_sr_padron_a4",
       method: "getPersona",
       endpoint: ENDPOINT,
-      exchangeId: events[0].exchangeId,
+      requestId: events[0].requestId,
       xml: "<getPersonaResponse/>",
+      result: createTaxpayerPersonaResponse(),
+    });
+    // the request carries the params with auth, credentials redacted
+    expect(events[0]).toMatchObject({
+      params: {
+        token: "[REDACTED]",
+        sign: "[REDACTED]",
+        idPersona: REPOSITORY_TEST_IDENTIFIER,
+      },
     });
     // auth is still injected, and the exchange id reaches node-soap
     const [params, options] = mockSoapClient.getPersonaAsync.mock.calls[0];
     expect(params).toMatchObject({ token: "token", sign: "sign" });
-    expect(options).toEqual({ exchangeId: events[0].exchangeId });
+    expect(options).toEqual({ exchangeId: events[0].requestId });
   });
 
   it("should emit events for methods without auth", async () => {
@@ -96,8 +102,8 @@ describe("BaseSoapRepository events (via RegisterScopeFourRepository)", () => {
     await repository.getServerStatus();
 
     expect(events.map((e) => [e.type, e.method])).toEqual([
-      ["soap:request", "dummy"],
-      ["soap:response", "dummy"],
+      ["request", "dummy"],
+      ["response", "dummy"],
     ]);
   });
 
@@ -113,7 +119,7 @@ describe("BaseSoapRepository events (via RegisterScopeFourRepository)", () => {
       repository.getTaxpayerDetails(REPOSITORY_TEST_IDENTIFIER),
     ).rejects.toThrow("timeout");
     expect(events).toEqual([
-      expect.objectContaining({ type: "soap:error", method: "getPersona" }),
+      expect.objectContaining({ type: "error", method: "getPersona" }),
     ]);
   });
 

@@ -107,6 +107,7 @@ export class AuthRepository implements IAuthenticationRepositoryPort {
       ? await new SoapEventTracker(client, this.onEvent).track(
           "wsaa",
           "loginCms",
+          params,
           (options) =>
             this.soapClient.call<LoginCmsResult>(
               client,

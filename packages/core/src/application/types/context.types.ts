@@ -34,8 +34,8 @@ export interface Context {
   useHttpsAgent?: boolean;
 
   /**
-   * Receives a `soap:request`, `soap:response` or `soap:error` event for every
-   * call to ARCA, WSAA included, with the SOAP envelopes (token and sign redacted)
+   * Receives a `request`, `response` or `error` event for every call to ARCA,
+   * WSAA included, with the parameters, the result and the XML (token and sign redacted)
    */
   onEvent?: ArcaEventListener;
 }
