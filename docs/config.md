@@ -19,6 +19,7 @@ const instancia = new Arca(Contexto);
   - `ticketPath` <small>(cadena)</small>: Ruta donde guardar los tickets WSAA cuando el modo es automático en Node.js (`handleTicket: false`, valor por defecto). Por defecto apunta a `lib/infrastructure/storage/auth/tickets` **dentro del paquete instalado** (`node_modules/@arcasdk/core/...`). Personalizala con una ruta absoluta en tu servidor.
   - `useSoap12` <small>(booleano, opcional)</small>: Flag que indica si se debe usar SOAP 1.2 en lugar de SOAP 1.1 para el servicio de Facturación Electrónica. Por defecto es `true` (usa SOAP 1.2).
   - `useHttpsAgent` <small>(booleano, opcional)</small>: Flag que habilita el uso de un agente HTTPS con configuración legacy para servidores ARCA/AFIP antiguos. **Por defecto es `false`** (deshabilitado). Ver más detalles abajo.
+  - `onEvent` <small>(función, opcional)</small>: Recibe un evento por cada pedido, respuesta o error de cada llamada a ARCA, WSAA incluido, con el XML enviado y recibido. Sirve para loguear, medir tiempos o reaccionar a errores. Ver [`onEvent`](#onevent).
 
 <br/>
 Context Type:
@@ -88,10 +89,56 @@ type Context = {
    * @default false (disabled by default)
    */
   useHttpsAgent?: boolean;
+
+  /**
+   * Receives a soap:request, soap:response or soap:error event for every
+   * call to ARCA, WSAA included, with the SOAP envelopes (token and sign redacted)
+   */
+  onEvent?: ArcaEventListener;
 };
 ```
 
 ## 🔧 Parámetros Avanzados
+
+### `onEvent`
+
+Función que la SDK llama con un evento por cada llamada SOAP a ARCA, incluido el login en WSAA. Permite loguear los pedidos y las respuestas, medir tiempos o reaccionar ante errores sin depender de un logger en particular.
+
+```ts
+import { Arca, type ArcaEvent } from "@arcasdk/core";
+
+const arca = new Arca({
+  cuit,
+  cert,
+  key,
+  onEvent: (event: ArcaEvent) => {
+    switch (event.type) {
+      case "soap:request":
+        logger.debug(`ARCA ${event.service}.${event.method}`, event.xml);
+        break;
+      case "soap:response":
+        logger.debug(`ARCA ${event.method} ${event.durationMs}ms`, event.xml);
+        break;
+      case "soap:error":
+        logger.error(`ARCA ${event.method} falló`, event.error, event.xml);
+        break;
+    }
+  },
+});
+```
+
+| Evento | Cuándo | Datos además de `service`, `method`, `endpoint` y `exchangeId` |
+| ------ | ------ | --------------------------------------------------------------- |
+| `soap:request` | Justo antes de enviar el pedido | `xml`: sobre SOAP enviado |
+| `soap:response` | ARCA respondió y la SDK pudo leer la respuesta | `xml`: sobre SOAP recibido; `durationMs` |
+| `soap:error` | La llamada falló: error de red, HTTP o fault SOAP | `error`; `xml`: cuerpo de la respuesta, si hubo; `durationMs` |
+
+- `service` es el servicio de ARCA (`wsfe`, `ws_sr_padron_a5`, …) o `wsaa` en el login. `method` es la operación SOAP (`FECAESolicitar`, `loginCms`, …).
+- `exchangeId` identifica la llamada: el `soap:request` y su `soap:response` o `soap:error` comparten el mismo, aunque haya llamadas simultáneas.
+- **El token y el sign de WSAA nunca aparecen:** en el `xml` se reemplazan por `[REDACTED]`, tanto en los pedidos como en el ticket que devuelve `loginCms`. El resto del XML (CUIT, importes, datos del receptor) sale completo; tenelo en cuenta al elegir dónde guardar los logs.
+- Se emite `soap:error` para todo fault, aunque la SDK lo traduzca después (por ejemplo, "No existe persona" en los padrones termina en `null`).
+- La función se llama de forma sincrónica y **lo que lance se ignora**: un listener con errores nunca rompe una llamada a ARCA. Para trabajo lento (enviar a un servicio externo), encolalo en lugar de esperarlo.
+- Sin `onEvent` no se agrega nada a las llamadas.
 
 ### `useHttpsAgent`
 

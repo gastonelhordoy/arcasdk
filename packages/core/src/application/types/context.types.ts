@@ -1,5 +1,6 @@
 import { ILoginCredentials } from "@domain/types/auth.types";
 import { ITicketStoragePort } from "@application/ports/storage";
+import { ArcaEventListener } from "./events.types";
 
 export interface Context {
   
@@ -31,4 +32,10 @@ export interface Context {
 
   
   useHttpsAgent?: boolean;
+
+  /**
+   * Receives a `soap:request`, `soap:response` or `soap:error` event for every
+   * call to ARCA, WSAA included, with the SOAP envelopes (token and sign redacted)
+   */
+  onEvent?: ArcaEventListener;
 }
