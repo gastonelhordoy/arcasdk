@@ -37,13 +37,19 @@ export interface ArcaResponseEvent extends ArcaEventBase {
 export interface ArcaErrorEvent extends ArcaEventBase {
   type: "error";
   error: unknown;
+  /**
+   * SOAP fault ARCA answered with, read from the XML, when the call failed
+   * with one: `faultcode`, `faultstring` and `detail` (SOAP 1.1) or `Code`,
+   * `Reason` and `Detail` (SOAP 1.2)
+   */
+  fault?: unknown;
   /** Body ARCA answered with, when there was one */
   xml?: string;
   durationMs: number;
 }
 
 /**
- * Event for one call to ARCA. `params`, `result` and `xml` are copies with
+ * Event for one call to ARCA. `params`, `result`, `fault` and `xml` are copies with
  * the WSAA token and sign, and the signed request sent to WSAA, replaced by
  * `[REDACTED]`.
  */

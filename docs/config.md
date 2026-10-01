@@ -120,7 +120,7 @@ const arca = new Arca({
         logger.debug(`ARCA ${event.method} ${event.durationMs}ms`, event.result);
         break;
       case "error":
-        logger.error(`ARCA ${event.method} falló`, event.error, event.xml);
+        logger.error(`ARCA ${event.method} falló`, event.fault ?? event.error);
         break;
     }
   },
@@ -131,13 +131,13 @@ const arca = new Arca({
 | ------ | ------ | -------------------------------------------------------------- |
 | `request` | Justo antes de enviar el pedido | `params`: parámetros de la llamada, antes de pasarlos a XML; `xml`: XML enviado |
 | `response` | ARCA respondió y se pudo leer la respuesta | `result`: respuesta de ARCA leída del XML, antes de que la SDK la convierta a sus propios tipos; `xml`: XML recibido; `durationMs` |
-| `error` | La llamada falló: error de red, HTTP o fault de ARCA | `error`; `xml`: cuerpo de la respuesta, si hubo; `durationMs` |
+| `error` | La llamada falló: error de red, HTTP o fault de ARCA | `error`; `fault`: el fault de ARCA leído del XML, si lo hubo; `xml`: cuerpo de la respuesta, si hubo; `durationMs` |
 
 - `service` es el servicio de ARCA (`wsfe`, `ws_sr_padron_a5`, …) o `wsaa` en el login. `method` es la operación de ARCA (`FECAESolicitar`, `loginCms`, …).
-- `params` y `result` usan los nombres de ARCA (`FeCAEReq`, `FECAESolicitarResult`, …), igual que el XML.
+- `params`, `result` y `fault` usan los nombres de ARCA (`FeCAEReq`, `FECAESolicitarResult`, `faultstring`, …), igual que el XML.
 - `requestId` identifica la llamada: el `request` y su `response` o `error` comparten el mismo, aunque haya llamadas simultáneas.
-- **El token y el sign de WSAA nunca aparecen:** en `params`, `result` y `xml` se reemplazan por `[REDACTED]`, incluido el ticket que devuelve el login. También el pedido firmado que se envía al login (`in0`), porque mientras es válido alguien podría reenviarlo para obtener un ticket. El resto (CUIT, importes, datos del receptor) sale completo; tenelo en cuenta al elegir dónde guardar los logs.
-- `params` y `result` son copias: modificarlos no cambia lo que se envía ni lo que devuelve la SDK.
+- **El token y el sign de WSAA nunca aparecen:** en `params`, `result`, `fault` y `xml` se reemplazan por `[REDACTED]`, incluido el ticket que devuelve el login. También el pedido firmado que se envía al login (`in0`), porque mientras es válido alguien podría reenviarlo para obtener un ticket. El resto (CUIT, importes, datos del receptor) sale completo; tenelo en cuenta al elegir dónde guardar los logs.
+- `params`, `result` y `fault` son copias: modificarlos no cambia lo que se envía ni lo que devuelve la SDK.
 - Se emite `error` para todo fault de ARCA, aunque la SDK lo traduzca después (por ejemplo, "No existe persona" en los padrones termina en `null`).
 - La función se llama de forma sincrónica y **lo que lance se ignora**: un listener con errores nunca rompe una llamada a ARCA. Para trabajo lento (enviar a un servicio externo), encolalo en lugar de esperarlo.
 

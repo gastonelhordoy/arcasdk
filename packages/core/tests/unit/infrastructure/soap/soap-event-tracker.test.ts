@@ -273,6 +273,48 @@ describe("SoapEventTracker", () => {
     });
   });
 
+  it("should include the fault read from the XML", async () => {
+    const fault = Object.assign(new Error("soap:Server: boom"), {
+      root: {
+        Envelope: {
+          Body: {
+            Fault: {
+              faultcode: "soap:Server",
+              faultstring: "No existe persona con ese Id",
+              detail: { token: "secret" },
+            },
+          },
+        },
+      },
+    });
+
+    await expect(
+      tracker.track("ws_sr_padron_a5", "getPersona_v2", {}, async () => {
+        throw fault;
+      }),
+    ).rejects.toBe(fault);
+
+    expect(events[0]).toMatchObject({
+      type: "error",
+      fault: {
+        faultcode: "soap:Server",
+        faultstring: "No existe persona con ese Id",
+        detail: { token: "[REDACTED]" },
+      },
+    });
+    expect(fault.root.Envelope.Body.Fault.detail.token).toBe("secret");
+  });
+
+  it("should leave fault undefined when the error has none", async () => {
+    await expect(
+      tracker.track("wsfe", "FEDummy", {}, async () => {
+        throw new Error("ECONNRESET");
+      }),
+    ).rejects.toThrow("ECONNRESET");
+
+    expect(events[0]).toMatchObject({ type: "error", fault: undefined });
+  });
+
   it("should take the body of an HTTP error from response.data", async () => {
     const httpError = Object.assign(new Error("Request failed"), {
       response: { data: "<html>502</html>" },

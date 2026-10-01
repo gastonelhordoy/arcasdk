@@ -62,6 +62,14 @@ function redactLoginParams(params: unknown): unknown {
     : copy;
 }
 
+// node-soap keeps the envelope it read from a fault in error.root
+function faultOf(error: unknown): unknown {
+  const root = (
+    error as { root?: { Envelope?: { Body?: { Fault?: unknown } } } } | null
+  )?.root;
+  return root?.Envelope?.Body?.Fault;
+}
+
 function nextRequestId(): string {
   requestSequence = (requestSequence + 1) % Number.MAX_SAFE_INTEGER;
   return `${Date.now().toString(36)}-${requestSequence.toString(36)}`;
@@ -148,10 +156,12 @@ export class SoapEventTracker {
       return response;
     } catch (error) {
       const body = responseBodyOf(error);
+      const fault = faultOf(error);
       this.emit(() => ({
         type: "error",
         ...base(),
         error,
+        fault: fault === undefined ? undefined : redactCredentialsDeep(fault),
         xml: body === undefined ? undefined : redactCredentials(body),
       }));
       throw error;
