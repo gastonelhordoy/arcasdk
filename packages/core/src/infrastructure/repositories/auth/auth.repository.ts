@@ -19,6 +19,8 @@ import { AuthRepositoryConfig } from "@infrastructure/types/auth-repository.type
 import { ISoapClientPort } from "@infrastructure/soap/soap-client.port";
 import { ITicketStoragePort } from "@application/ports/storage";
 import { SoapClient } from "../../soap/soap-client";
+import { SoapEventTracker } from "../../soap/soap-event-tracker";
+import type { ArcaEventListener } from "@application/types/events.types";
 import { DEFAULT_USE_HTTPS_AGENT } from "@infrastructure/constants";
 import { isAlreadyAuthenticatedError } from "@infrastructure/utils/afip-errors";
 
@@ -35,6 +37,7 @@ export class AuthRepository implements IAuthenticationRepositoryPort {
     ArcaServiceName,
     Promise<AccessTicket>
   >();
+  private readonly onEvent?: ArcaEventListener;
 
   constructor(config: AuthRepositoryConfig) {
     this.soapClient =
@@ -46,6 +49,7 @@ export class AuthRepository implements IAuthenticationRepositoryPort {
     this.handleTicket = config.handleTicket ?? false;
     this.ticketStorage = config.ticketStorage;
     this.manualCredentials = config.credentials;
+    this.onEvent = config.onEvent;
   }
 
   
@@ -112,11 +116,33 @@ export class AuthRepository implements IAuthenticationRepositoryPort {
 
     const client = await this.createAuthClient();
 
+    type LoginCmsResult = [
+      IloginCmsOutput,
+      string,
+      Record<string, unknown>,
+      string,
+    ];
+    const params = { in0: signedTRA };
     let loginCmsReturn: string;
     try {
-      [{ loginCmsReturn }] = await this.soapClient.call<
-        [IloginCmsOutput, string, Record<string, unknown>, string]
-      >(client, "loginCmsAsync", { in0: signedTRA });
+      [{ loginCmsReturn }] = this.onEvent
+        ? await new SoapEventTracker(client, this.onEvent).track(
+            "wsaa",
+            "loginCms",
+            params,
+            (options) =>
+              this.soapClient.call<LoginCmsResult>(
+                client,
+                "loginCmsAsync",
+                params,
+                options,
+              ),
+          )
+        : await this.soapClient.call<LoginCmsResult>(
+            client,
+            "loginCmsAsync",
+            params,
+          );
     } catch (error) {
       // Another process or instance sharing the storage may have obtained
       // the ticket after the check above.

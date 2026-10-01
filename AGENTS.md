@@ -71,6 +71,7 @@ const taxpayer = await arca.registerScopeFourService.getTaxpayerDetails(20111111
 - El CUIT del contexto debe coincidir con el del certificado.
 - WSAA gestiona tickets automáticamente; en serverless usar `ticketStorage` custom o `handleTicket: true` con credenciales pre-obtenidas.
 - Para cifrar los tickets guardados, envolver el storage en `EncryptedTicketStorage` (AES-256-GCM, clave de 32 bytes).
+- Para loguear o medir las llamadas a ARCA usar `onEvent` en el contexto (`request` / `response` / `error`, con token y sign ocultos); no agregar `console.log` dentro de la SDK.
 - Ver [docs/credential_management.md](docs/credential_management.md) y [docs/config.md](docs/config.md).
 
 ## Errores frecuentes

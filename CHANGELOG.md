@@ -10,6 +10,7 @@
 - add `keepAlive` SOAP client option; WSCDC uses `keepAlive: false` because ARCA rejects WSCDC calls sent over a keep-alive connection opened by WSFE on the same host
 - add `PeriodoAsoc` on WSFE vouchers so credit/debit notes can satisfy ARCA error 10197 without a specific `CbtesAsoc`
 - complete `getVoucherInfo`: it now returns everything `FECompConsultar` reports — sales point and voucher type, receiver IVA condition, service period and payment due date, `canMisMonExt`, IVA and tax breakdowns, associated vouchers or period, optionals, buyers, activities, and every observation with its code in `observacionesDetalle` (`observaciones` keeps the first message)
+- add `onEvent` to the `Arca` context: it receives `request`, `response` and `error` events for every call to ARCA, WSAA included, with the call parameters, the parsed result or fault and the XML (WSAA token, sign and signed login request redacted), the duration and an id that ties each request to its outcome, to log, measure or react without a specific logger — see [`onEvent`](https://ralcorta.github.io/arcasdk/config#onevent)
 
 ### 🩹 Fixes
 
