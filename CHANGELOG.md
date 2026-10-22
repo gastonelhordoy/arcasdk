@@ -14,6 +14,7 @@
 
 ### 🩹 Fixes
 
+- `getVoucherInfo` returns the ARCA errors (`{ errors }`) instead of `null` when `FECompConsultar` answers without `ResultGet`, so a voucher that does not exist (602) can be told from an invalid request (10202, 10204); it still returns `null` when ARCA answers nothing at all
 - share a single WSAA login between concurrent calls for the same service, and recover from `coe.alreadyAuthenticated` by re-reading the ticket storage, where another instance may have saved the ticket
 - accept `DocTipo` 0 (CI Policía Federal) in WSFE vouchers: it is a valid ARCA document type, so only a missing or negative value is rejected before the SOAP call
 - stop pre-validating WSFE `ImpTotal` in the SDK (ARCA error 10048), so fiscally valid exempt vouchers such as Recibo A (`ImpOpEx = ImpTotal`) are no longer rejected before the SOAP call

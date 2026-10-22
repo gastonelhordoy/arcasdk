@@ -714,6 +714,37 @@ describe("ElectronicBillingRepository", () => {
       expect(result).toBeNull();
     });
 
+    it("should return the ARCA errors when there is no ResultGet", async () => {
+      mockSoapClient.FECompConsultarAsync.mockResolvedValue([
+        {
+          FECompConsultarResult: {
+            ResultGet: undefined,
+            Errors: {
+              Err: [
+                {
+                  Code: 602,
+                  Msg: "No existen datos en nuestros registros para los parametros ingresados.",
+                },
+              ],
+            },
+          },
+        },
+      ] as never);
+
+      const result = await repository.getVoucherInfo(1, 1, 1);
+
+      expect(result).toEqual({
+        errors: {
+          err: [
+            {
+              code: 602,
+              msg: "No existen datos en nuestros registros para los parametros ingresados.",
+            },
+          ],
+        },
+      });
+    });
+
     it("should return mapped voucher info when ResultGet is present", async () => {
       mockSoapClient.FECompConsultarAsync.mockResolvedValue([
         {
