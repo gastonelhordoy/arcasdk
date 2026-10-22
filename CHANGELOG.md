@@ -7,6 +7,7 @@
 
 ### 🩹 Fixes
 
+- `getVoucherInfo` returns the ARCA errors (`{ errors }`) instead of `null` when `FECompConsultar` answers without `ResultGet`, so a voucher that does not exist (602) can be told from an invalid request (10202, 10204); it still returns `null` when ARCA answers nothing at all
 - stop pre-validating WSFE `ImpTotal` in the SDK (ARCA error 10048), so fiscally valid exempt vouchers such as Recibo A (`ImpOpEx = ImpTotal`) are no longer rejected before the SOAP call
 - expand `isTypeA/B/C/M()` to Recibos, NC and ND of that class, so type-C IVA rules apply to Recibo/NC/ND C and not only Factura C (`CbteTipo` 11)
 - map XSD restricted numeric simpleTypes to `number` in generated SOAP DTOs (WSCT, WSFECRED)
