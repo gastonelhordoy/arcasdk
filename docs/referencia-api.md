@@ -207,7 +207,7 @@ Guía detallada: [Facturación electrónica](/services/facturacion_electronica)
 | `createNextVoucher(req)` | Igual que `createVoucher` pero calcula número siguiente (`INextVoucher`) |
 | `createInvoice(req)` | Sinónimo de `createVoucher` |
 | `createNextInvoice(req)` | Sinónimo de `createNextVoucher` |
-| `getVoucherInfo(number, salesPoint, type)` | Consulta comprobante emitido |
+| `getVoucherInfo(number, salesPoint, type)` | Consulta comprobante emitido (`{ …datos, errors? }` o `null`; “no existe” = error 602 en `errors`, no `null`) |
 | `getVoucherTypes()` | Tipos de comprobante |
 | `getConceptTypes()` | Tipos de concepto |
 | `getDocumentTypes()` | Tipos de documento receptor |

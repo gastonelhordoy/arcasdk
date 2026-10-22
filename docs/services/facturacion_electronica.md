@@ -218,12 +218,25 @@ Recupera los datos de un comprobante ya emitido.
 const voucherInfo = await arca.electronicBillingService.getVoucherInfo(1, 1, 6);
 // getVoucherInfo(nroComprobante, puntoVenta, tipoComprobante)
 
-if (voucherInfo) {
+const arcaErrors = voucherInfo?.errors?.err ?? [];
+const notFound = arcaErrors.some((e) => e.code === 602);
+
+if (notFound) {
+  console.log("El comprobante no existe.");
+} else if (arcaErrors.length > 0) {
+  // p. ej. 10202 / 10204: request inválido (número fuera de rango, etc.)
+  console.log("ARCA rechazó la consulta:", arcaErrors);
+} else if (voucherInfo?.codAutorizacion) {
   console.log("Datos del comprobante:", voucherInfo);
 } else {
-  console.log("El comprobante no existe.");
+  // respuesta vacía (sin ResultGet ni Errors)
+  console.log("Sin datos ni errores de ARCA.");
 }
 ```
+
+::: tip
+`null` ya no significa “no existe”. Cuando el comprobante no está en ARCA (error **602**) o el request es inválido (**10202**, **10204**, …), `getVoucherInfo` devuelve `{ errors }` para poder distinguirlos. Solo vuelve `null` si la respuesta no trae `ResultGet` ni `Errors`.
+:::
 
 ---
 
